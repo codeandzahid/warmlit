@@ -24,10 +24,11 @@ PC, no Meta, no API key. Install: `install-realphoto.bat` /
 `./install-realphoto.sh`, then set `VIDEO_BACKEND=realphoto`.
 First run downloads weights (several GB).
 
-Hardware truth: no open real-photo model fits 4GB VRAM natively
-(floors ~6-16GB depending on model). CPU offload works but a 5s
-clip can take hours. AMD on Windows runs on CPU. NVIDIA 8GB+ is
-the practical minimum for Red-Wing-style real-photo clips.
+480p LITE MODE (owner order Nov 23): output locked to 832x480,
+low-memory settings always on (CPU offload, VAE tiling/slicing,
+attention slicing). 480p cuts working memory, not weight size
+(weights ~5GB+). CPU-only estimate: 1-3 hours per 3s clip.
+NVIDIA 8GB+: minutes. AMD on Windows runs on CPU.
 
 Also supported: `VIDEO_MODEL_CMD=your-command --prompt "{prompt}"
 --out "{out}"` in `.env` for any other local model command.
