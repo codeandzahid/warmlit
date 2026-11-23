@@ -88,6 +88,60 @@ def _figure(d, x, y, phase, s=1.0, color=(20, 20, 20)):
     d.line([(x, y - 60 * s), (x - swing * 0.7, y - 35 * s)], fill=color, width=3)
 
 
+
+def _cloud(d, x, y, s=1.0):
+    d.ellipse([x, y, x + 90 * s, y + 36 * s], fill=(245, 245, 245))
+    d.ellipse([x + 25 * s, y - 18 * s, x + 70 * s, y + 30 * s], fill=(245, 245, 245))
+
+
+def _pyramid(d, x, y, s=1.0):
+    d.polygon([(x, y), (x + 90 * s, y - 110 * s), (x + 180 * s, y)], fill=(210, 180, 110))
+    d.polygon([(x + 90 * s, y - 110 * s), (x + 180 * s, y), (x + 90 * s, y)], fill=(180, 150, 85))
+
+
+def _wall(d, x, y, s=1.0):
+    d.rectangle([x, y - 45 * s, x + 260 * s, y], fill=(160, 140, 120))
+    for i in range(5):
+        d.rectangle([x + i * 52 * s, y - 65 * s, x + i * 52 * s + 26 * s, y - 45 * s], fill=(160, 140, 120))
+
+
+def _mountain(d, x, y, s=1.0):
+    d.polygon([(x, y), (x + 110 * s, y - 170 * s), (x + 220 * s, y)], fill=(110, 110, 130))
+    d.polygon([(x + 85 * s, y - 128 * s), (x + 110 * s, y - 170 * s), (x + 135 * s, y - 128 * s)], fill=(255, 255, 255))
+
+
+def _city(d, x, y, s=1.0):
+    for i, h in enumerate([120, 180, 90, 150]):
+        bx = x + i * 55 * s
+        d.rectangle([bx, y - h * s, bx + 45 * s, y], fill=(90, 100, 130))
+        for wy in range(3):
+            d.rectangle([bx + 8 * s, y - h * s + 12 * s + wy * 30 * s, bx + 20 * s, y - h * s + 24 * s + wy * 30 * s], fill=(255, 230, 120))
+
+
+def _train(d, x, y, s=1.0):
+    d.rectangle([x, y - 45 * s, x + 200 * s, y - 10 * s], fill=(60, 60, 160))
+    d.rectangle([x + 160 * s, y - 70 * s, x + 200 * s, y - 45 * s], fill=(60, 60, 160))
+    for wx in (x + 30 * s, x + 90 * s, x + 160 * s):
+        d.ellipse([wx - 12 * s, y - 16 * s, wx + 12 * s, y + 8 * s], fill=(20, 20, 20))
+
+
+def _plane(d, x, y, s=1.0):
+    d.ellipse([x, y - 12 * s, x + 130 * s, y + 12 * s], fill=(235, 235, 235))
+    d.polygon([(x + 55 * s, y), (x + 85 * s, y - 40 * s), (x + 95 * s, y)], fill=(200, 60, 60))
+    d.polygon([(x + 5 * s, y - 5 * s), (x - 15 * s, y - 30 * s), (x + 15 * s, y - 5 * s)], fill=(200, 60, 60))
+
+
+def _weather(d, W, H, t, kind):
+    import random as _r
+    _r.seed(7)
+    for i in range(60):
+        x = _r.randint(0, W)
+        y = int((_r.randint(0, H) + t * H * 1.5) % H)
+        if kind == "rain":
+            d.line([(x, y), (x - 4, y + 14)], fill=(150, 180, 255), width=2)
+        else:
+            d.ellipse([x, y, x + 5, y + 5], fill=(255, 255, 255))
+
 def render_frame(scene: str, t: float, W: int, H: int) -> Image.Image:
     """t = 0..1 progress inside the scene."""
     low = scene.lower()
@@ -101,8 +155,26 @@ def render_frame(scene: str, t: float, W: int, H: int) -> Image.Image:
     pan = int(W * 0.08 * t)
     _tree(d, W * 0.18 - pan, gy, 1.0)
     _tree(d, W * 0.85 - pan, gy, 0.8)
+    _cloud(d, W * (0.05 + 0.5 * t), H * 0.08, 1.0)
+    _cloud(d, W * (0.55 - 0.3 * t), H * 0.16, 0.7)
+    if "pyramid" in low or "egypt" in low:
+        _pyramid(d, W * 0.3 - pan, gy, 1.2)
+    if "wall" in low:
+        _wall(d, W * 0.1 - pan, gy, 1.2)
+    if "mountain" in low:
+        _mountain(d, W * 0.35 - pan, gy, 1.1)
+    if "city" in low:
+        _city(d, W * 0.15 - pan, gy, 1.0)
+    if "train" in low:
+        _train(d, W * (0.02 + 0.65 * t), gy + 45, 1.0)
+    if "plane" in low or "fly" in low:
+        _plane(d, W * (0.05 + 0.7 * t), H * 0.25, 1.0)
     if "house" in low or "home" in low or "village" in low:
         _house(d, W * 0.55 - pan, gy, 1.1)
+    if "rain" in low:
+        _weather(d, W, H, t, "rain")
+    if "snow" in low:
+        _weather(d, W, H, t, "snow")
     if "car" in low or "drive" in low or "road" in low:
         _car(d, W * (0.05 + 0.7 * t), gy + 40, 1.0)
     if water or "boat" in low:
@@ -110,12 +182,31 @@ def render_frame(scene: str, t: float, W: int, H: int) -> Image.Image:
     # main figure walks across unless scene is only objects
     if not any(w in low for w in ["car only", "no people", "empty"]):
         _figure(d, W * (0.1 + 0.75 * t), gy + 55, (t * 6) % 1.0, 1.1)
-    # caption
-    font = _font(max(18, W // 28))
-    text = scene.strip()[:80]
-    tw = d.textlength(text, font=font)
-    d.rectangle([(W - tw) / 2 - 10, H - 70, (W + tw) / 2 + 10, H - 20], fill=(0, 0, 0))
-    d.text(((W - tw) / 2, H - 62), text, fill="white", font=font)
+    # gentle zoom-in over the scene
+    zoom = 1.0 + 0.12 * t
+    if zoom > 1.01:
+        zw, zh = int(W * zoom), int(H * zoom)
+        img = img.resize((zw, zh), Image.LANCZOS).crop(((zw - W) // 2, (zh - H) // 2, (zw + W) // 2, (zh + H) // 2))
+        d = ImageDraw.Draw(img)
+    # caption (wrapped, up to 2 lines)
+    font = _font(max(20, W // 24))
+    text = scene.strip()
+    words, lines, cur = text.split(), [], ""
+    for w in words:
+        if d.textlength(cur + " " + w, font=font) > W - 60 and cur:
+            lines.append(cur); cur = w
+        else:
+            cur = (cur + " " + w).strip()
+    if cur:
+        lines.append(cur)
+    lines = lines[:2]
+    box_h = 34 * len(lines) + 16
+    d.rectangle([0, H - box_h, W, H], fill=(0, 0, 0))
+    y = H - box_h + 8
+    for ln in lines:
+        tw = d.textlength(ln, font=font)
+        d.text(((W - tw) / 2, y), ln, fill="white", font=font)
+        y += 34
     return img
 
 
