@@ -122,6 +122,18 @@ def render_frame(scene: str, t: float, W: int, H: int) -> Image.Image:
 def generate_video(prompt: str, out: str, seconds_per_scene: float = 4.0,
                    fps: int = 12, size: tuple = (720, 1280)) -> str:
     """Generate a video from a text prompt. Fully local, no Meta."""
+    # Warmlit Video Model (our own diffusion model, packages/videomodel):
+    ckpt = os.environ.get("WARMLIT_VIDEO_CKPT")
+    if ckpt and Path(ckpt).exists():
+        import torch
+        from packages.videomodel.generate import frames_to_mp4
+        from packages.videomodel.model import WarmlitVideoModel
+        device = "cuda" if torch.cuda.is_available() else "cpu"
+        model = WarmlitVideoModel.load(ckpt, device)
+        frames = model.generate(prompt, device=device)
+        frames_to_mp4(frames, out, fps=model.cfg.fps)
+        return f"made {out} (Warmlit Video Model)"
+
     # Optional external local diffusion model (owner's PC only, no Meta):
     cmd = os.environ.get("VIDEO_MODEL_CMD")
     if cmd:

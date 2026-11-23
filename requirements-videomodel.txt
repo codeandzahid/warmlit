@@ -1,0 +1,4 @@
+# Only for the Warmlit Video Model (packages/videomodel). Core Warmlit needs none of this.
+torch
+numpy
+pillow
