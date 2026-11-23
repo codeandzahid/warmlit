@@ -52,16 +52,12 @@ Copy `.env.example` to `.env`, then pick one:
 
 Never put keys in chat. `.env` is gitignored.
 
-## Free vs Paid
+## Owner only — everything unlocked
 
-- **Free:** chat with daily limit, memory, read files, web fetch.
-- **Paid:** unlimited + local system tasks — write files, run shell,
-  open Chrome, scheduled jobs. All still need approval taps.
-
-Owner makes a Paid key with `python3 tools/make_key.py --days 30`
-(after the buyer pays outside Warmlit — no card data in this code).
-Buyer puts `license.json` in `data/`. Price is NOT set yet — see
-`docs/plans.md`. Check your plan in chat with `/plan`.
+Warmlit is personal, for the owner only. Not for sale, no price.
+Everything is ON: unlimited chat, memory, files, shell, Chrome,
+scheduled jobs — local system tasks included, still with approval
+taps for risky actions. See `docs/plans.md`.
 
 ## What works today
 

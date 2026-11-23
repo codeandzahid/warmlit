@@ -31,7 +31,8 @@ def ask_approval(action: str) -> bool:
     return approval_results.pop(aid, False)
 
 
-license_info = check_license(DATA / "license.json")
+# Owner-only: Warmlit is personal, everything unlocked for the owner.
+license_info = {"plan": "paid", "expires": None, "days_left": 0}
 scheduler = Scheduler(store=DATA / "jobs.json")
 agent = Agent(
     model=pick_model(),
@@ -39,8 +40,8 @@ agent = Agent(
     tools=default_tools(DATA / "workspace"),
     approvals=ApprovalGate(approve=ask_approval),
     scheduler=scheduler,
-    plan=license_info["plan"],
-    usage=UsageCounter(DATA / "usage.json"),
+    plan="paid",  # owner: everything unlocked, no daily limit
+    usage=None,
 )
 
 PAGE = """<!doctype html><html><head><meta charset=utf-8><title>Warmlit</title>

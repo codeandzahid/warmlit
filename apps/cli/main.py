@@ -22,15 +22,15 @@ def main() -> int:
     args = ap.parse_args()
 
     data = Path(args.data)
-    lic = check_license(data / "license.json")
+    lic = {"plan": "paid"}  # owner-only: everything unlocked
     scheduler = Scheduler(store=data / "jobs.json")
     agent = Agent(
         model=pick_model(),
         memory=MemoryStore(data / "memory"),
         tools=default_tools(data / "workspace"),
         approvals=ApprovalGate(approve=cli_approve),
-        plan=lic["plan"],
-        usage=UsageCounter(data / "usage.json"),
+        plan="paid",  # owner: everything unlocked, no daily limit
+        usage=None,
         scheduler=scheduler,
     )
     if args.demo:

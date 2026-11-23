@@ -1,30 +1,32 @@
-# Warmlit plans — Free vs Paid
+# Warmlit — owner only, everything unlocked
 
-| Feature | Free | Paid |
-|---|---|---|
-| Chat (demo or your API key) | yes, daily limit | unlimited |
-| Memory save + search | yes | yes |
-| Read files, list files | yes | yes |
-| Web fetch, skills search | yes | yes |
-| Write files (local system) | no | yes, with approval |
-| Run shell commands (local system) | no | yes, with approval |
-| Open Chrome browser (local system) | no | yes |
-| Scheduled jobs | no | yes |
-| Connectors (when connected) | no | yes |
+Warmlit is personal. It is for the owner only. Not for sale.
+No price. No buyers. No free/paid gate for the owner.
 
-Daily limit for Free: `FREE_DAILY_LIMIT` in .env (default 50).
+Everything is ON for the owner:
+- Unlimited chat (no daily limit)
+- Memory save + search
+- Read / write / list files (local system, with approval)
+- Run shell commands (local system, with approval)
+- Open Chrome browser (local system)
+- Web fetch, skills search
+- Scheduled jobs that run alone
+- Connectors when the owner connects his own accounts
 
-## How Paid works (local, offline)
+## Muse paid things, in Warmlit terms
 
-1. Owner sets `LICENSE_SECRET` in .env (never share it).
-2. Owner makes a key: `python3 tools/make_key.py --days 30`
-3. Buyer pays the owner outside Warmlit (e.g. PayPal).
-   No card data ever touches this code.
-4. Owner sends the buyer `license.json`. Buyer puts it in `data/`.
-5. Warmlit checks the key offline. Valid + not expired = Paid.
-   Bad or expired = Free. Paying again = new key file, same install.
+Muse paid users get: more usage + Muse Wonder (stronger brain) +
+Muse Mail (paid plans, some countries).
 
-## Price
+In Warmlit:
+- More usage → already unlimited locally. Your computer, your limit.
+- Stronger brain → Warmlit can use any OpenAI-compatible API.
+  For Muse Wonder itself, get a Meta Model API key (dev.meta.ai)
+  and put it in .env — Warmlit will use it as the brain.
+  Without a key, use the free demo brain or free Ollama local model.
+- Muse Mail (@muse.ai address) → that is Meta's service, it cannot
+  be copied into Warmlit. Warmlit can use your own Gmail later via
+  the Gmail connector (needs your Google sign-in).
 
-NOT SET YET. The owner must confirm the price before selling.
-Nothing in this repo charges money.
+The old license-key code (plans.py, tools/make_key.py) stays in the
+repo but is NOT used. Owner mode is always on.

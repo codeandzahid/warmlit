@@ -30,7 +30,7 @@ TOOL_BLOCK = re.compile(r"```tool\s*(\{.*?\})\s*```", re.S)
 class Agent:
     def __init__(self, model, memory: MemoryStore, tools: ToolRegistry,
                  approvals: ApprovalGate | None = None, scheduler=None,
-                 plan: str = "free", usage: UsageCounter | None = None):
+                 plan: str = "paid", usage: UsageCounter | None = None):
         self.model = model
         self.memory = memory
         self.tools = tools
