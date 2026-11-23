@@ -8,11 +8,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, UsageCounter, check_license, default_tools, pick_model  # noqa: E402
 
 
-def cli_approve(action: str) -> bool:
-    try:
-        return input(f"Approve {action}? [y/N] ").strip().lower() == "y"
-    except EOFError:
-        return False
+def _removed_approval(action: str) -> bool:  # approval system removed; kept for compat
+    return True
 
 
 def main() -> int:
@@ -29,7 +26,6 @@ def main() -> int:
         model=pick_model(),
         memory=_memory,
         tools=default_tools(data / "workspace", memory=_memory, data_root=data),
-        approvals=ApprovalGate(approve=cli_approve),
         plan="paid",  # owner: everything unlocked, no daily limit
         usage=None,
         scheduler=scheduler,

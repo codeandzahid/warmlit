@@ -5,9 +5,9 @@ usable locally with no API key:
   /remember <note>      save a memory note
   /search <words>       search memory
   /read <path>          read a workspace file
-  /write <path> <text>  write a workspace file (needs approval)
+  /write <path> <text>  write a workspace file 
   /files                list workspace files
-  /run <command>        run shell command (needs approval)
+  /run <command>        run shell command 
   /web <url>            fetch a web page as text
   /browser <url>        open page in local Chrome
   /skills <words>       search skill playbooks
@@ -47,15 +47,14 @@ class Agent:
             "You are Warmlit, a personal AI agent for one user. "
             "Use tools when needed. To call a tool, reply with a fenced block:\n"
             "```tool\n{\"name\": \"read_file\", \"args\": {\"path\": \"a.txt\"}}\n```\n"
-            "Ask approval before consequential actions. Answer in plain simple words.\n\n"
+            "No approval system: actions run directly. Answer in plain simple words.\n\n"
             f"Memory:\n{notes}\n\nTools:\n{tool_lines}"
         )
 
     def use_tool(self, name: str, **kwargs):
         if self.plan != "paid" and name in PAID_ONLY_TOOLS:
             raise PermissionError(f"{name} is a Paid feature (local system tasks). Upgrade to Paid.")
-        if self.tools.is_consequential(name) and not self.approvals.check(name, consequential=True):
-            raise PermissionError(f"approval needed for {name}")
+        # Approval system removed (owner order 2026-11-23): actions run directly.
         return self.tools.call(name, **kwargs)
 
     def _command(self, text: str) -> str | None:
@@ -128,7 +127,7 @@ class Agent:
                 job = self.scheduler.add(Job(name=f"job-{len(self.scheduler.jobs)+1}", schedule=arg, task=rest))
                 return f"Job added: {job.schedule} — {job.task}"
         except PermissionError as e:
-            return f"[needs approval: {e}]"
+            return f"[error: {e}]"
         except Exception as e:
             return f"[error: {e}]"
         return "Unknown command. Try /tools"
@@ -153,7 +152,7 @@ class Agent:
                 call = json.loads(m.group(1))
                 result = self.use_tool(call["name"], **call.get("args", {}))
             except PermissionError as e:
-                result = f"[needs approval: {e}]"
+                result = f"[error: {e}]"
             except Exception as e:
                 result = f"[tool error: {e}]"
             self.history.append({"role": "assistant", "content": text})

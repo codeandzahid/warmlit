@@ -16,21 +16,6 @@ from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, Usa
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
 
-pending_approvals: dict[str, threading.Event] = {}
-approval_results: dict[str, bool] = {}
-counter = [0]
-
-
-def ask_approval(action: str) -> bool:
-    counter[0] += 1
-    aid = str(counter[0])
-    ev = threading.Event()
-    pending_approvals[aid] = ev
-    print(f"[approval needed #{aid}] {action} — approve in the web UI", flush=True)
-    ev.wait(timeout=300)
-    return approval_results.pop(aid, False)
-
-
 # Owner-only: Warmlit is personal, everything unlocked for the owner.
 license_info = {"plan": "paid", "expires": None, "days_left": 0}
 scheduler = Scheduler(store=DATA / "jobs.json")
@@ -39,7 +24,6 @@ agent = Agent(
     model=pick_model(),
     memory=_memory,
     tools=default_tools(DATA / "workspace", memory=_memory, data_root=DATA),
-    approvals=ApprovalGate(approve=ask_approval),
     scheduler=scheduler,
     plan="paid",  # owner: everything unlocked, no daily limit
     usage=None,
@@ -75,7 +59,7 @@ input{width:78%;padding:10px}button{padding:10px 14px}.card{border:2px solid ora
 <p id=plan>Plan: loading…</p>
 <script>fetch('/health').then(r=>r.json()).then(j=>{document.getElementById('plan').textContent='Plan: '+j.plan+(j.plan==='paid'?' ('+j.days_left+' days left)':' — local system tasks need Paid')+' · Model: '+j.model;});</script>
 <p>Try: <code>/remember I like tea</code> · <code>/search tea</code> · <code>/tools</code> · <code>/web https://example.com</code> · <code>/write note.txt hello</code> · <code>/job every:60s /remember tick</code></p>
-<div id=approvals></div><div id=chat></div>
+<div id=chat></div>
 <p><input id=msg placeholder="Message Warmlit…"><button onclick=send()>Send</button>
 <button onclick=mic()>🎤 Talk</button><button onclick=speakLast()>🔊 Speak</button><button onclick=voiceNote()>⏺ Voice note</button></p>
 <p><button onclick=panel('goals')>Goals</button><button onclick=panel('feed')>Feed</button><button onclick=panel('ideas')>Ideas</button><button onclick=panel('library')>Library</button><button onclick=panel('connectors')>Connectors</button></p>
@@ -98,14 +82,7 @@ if('serviceWorker' in navigator)navigator.serviceWorker.register('/sw.js');
 const chat=document.getElementById('chat');
 function add(cls,txt){const d=document.createElement('div');d.className='m '+cls;d.textContent=txt;chat.appendChild(d);chat.scrollTop=chat.scrollHeight;}
 async function send(){const i=document.getElementById('msg');const t=i.value.trim();if(!t)return;i.value='';add('u',t);
- const r=await fetch('/chat',{method:'POST',body:JSON.stringify({text:t})});const j=await r.json();lastReply=j.reply;add('a',j.reply);pollApprovals();}
-async function pollApprovals(){const r=await fetch('/approvals');const j=await r.json();const box=document.getElementById('approvals');box.innerHTML='';
- j.pending.forEach(id=>{const d=document.createElement('div');d.className='card';d.innerHTML='Approval needed #'+id+' ';
-  const y=document.createElement('button');y.textContent='Approve';y.onclick=()=>decide(id,true);
-  const n=document.createElement('button');n.textContent='Deny';n.onclick=()=>decide(id,false);
-  d.appendChild(y);d.appendChild(n);box.appendChild(d);});}
-async function decide(id,ok){await fetch('/approve',{method:'POST',body:JSON.stringify({id,ok})});pollApprovals();}
-setInterval(pollApprovals,3000);pollApprovals();
+ const r=await fetch('/chat',{method:'POST',body:JSON.stringify({text:t})});const j=await r.json();lastReply=j.reply;add('a',j.reply);}
 document.getElementById('msg').addEventListener('keydown',e=>{if(e.key==='Enter')send();});
 </script></body></html>"""
 
@@ -130,8 +107,6 @@ class Handler(BaseHTTPRequestHandler):
             self._send(SW_JS.encode(), "application/javascript")
         elif self.path == "/icon.png":
             self._send(_icon_png(), "image/png")
-        elif self.path == "/approvals":
-            self._send(json.dumps({"pending": list(pending_approvals)}).encode())
         elif self.path == "/health":
             self._send(json.dumps({"ok": True, "model": agent.model.name, "jobs": len(scheduler.jobs), "plan": agent.plan, "days_left": license_info["days_left"]}).encode())
         else:
@@ -150,13 +125,6 @@ class Handler(BaseHTTPRequestHandler):
         if self.path == "/chat":
             reply = agent.chat(body.get("text", ""))
             self._send(json.dumps({"reply": reply}).encode())
-        elif self.path == "/approve":
-            aid = str(body.get("id"))
-            approval_results[aid] = bool(body.get("ok"))
-            ev = pending_approvals.pop(aid, None)
-            if ev:
-                ev.set()
-            self._send(b'{"ok":true}')
         else:
             self.send_response(404); self.end_headers()
 
