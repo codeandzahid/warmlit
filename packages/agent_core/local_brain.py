@@ -94,6 +94,36 @@ class LocalBrain:
         m = re.match(r"(?:search skills for|find skill)\s+(.+)", text, re.I)
         if m:
             return _tool("skills_search", query=m.group(1))
+        m = re.match(r"(?:add goal|new goal)\s+(.+)", text, re.I)
+        if m:
+            return _tool("goal_add", title=m.group(1))
+        if low in {"list goals", "my goals", "goals"}:
+            return _tool("goal_list")
+        m = re.match(r"(?:add idea|new idea|idea)\s+(.+)", text, re.I)
+        if m:
+            return _tool("idea_add", text=m.group(1))
+        if low in {"make feed", "today feed", "feed"}:
+            return _tool("feed_make")
+        if low in {"library", "my files", "show library"}:
+            return _tool("library")
+        m = re.match(r"make (?:a )?(?:poster|image) (?:that says|with text)\s+(.+)", text, re.I)
+        if m:
+            return _tool("make_poster", text=m.group(1))
+        m = re.match(r"make (?:a )?thumbnail (?:that says|with text)\s+(.+)", text, re.I)
+        if m:
+            return _tool("make_thumbnail", text=m.group(1))
+        m = re.match(r"make (?:a )?text video (?:that says|with text)\s+(.+)", text, re.I)
+        if m:
+            return _tool("make_text_video", text=m.group(1))
+        m = re.match(r"say\s+(.+)", text, re.I)
+        if m:
+            return _tool("say", text=m.group(1))
+        m = re.match(r"post to facebook\s+(.+)", text, re.I | re.S)
+        if m:
+            return _tool("facebook_post", text=m.group(1))
+        m = re.match(r"search gmail for\s+(.+)", text, re.I)
+        if m:
+            return _tool("gmail_search", query=m.group(1))
 
         # Answer from memory notes in the system prompt if a word matches.
         notes = [ln.strip("- ").strip() for ln in system.splitlines() if ln.startswith("- ") and ":" not in ln[:12]]

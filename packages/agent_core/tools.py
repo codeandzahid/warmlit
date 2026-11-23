@@ -35,7 +35,7 @@ def _inside(ws: Path, path: str) -> Path:
     return p
 
 
-def default_tools(workspace: str | Path, skills_root: str | Path | None = None, memory=None) -> ToolRegistry:
+def default_tools(workspace: str | Path, skills_root: str | Path | None = None, memory=None, data_root: str | Path | None = None) -> ToolRegistry:
     ws = Path(workspace)
     ws.mkdir(parents=True, exist_ok=True)
     reg = ToolRegistry()
@@ -105,6 +105,92 @@ def default_tools(workspace: str | Path, skills_root: str | Path | None = None, 
 
         reg.register("memory_remember", "Save a note to long-term memory", memory_remember)
         reg.register("memory_search", "Search long-term memory notes", memory_search)
+
+    # --- media (local, no keys) ---
+    from packages.media import image as _img, video as _vid, voice as _voice
+
+    def make_slideshow(images: str, out: str = "video.mp4") -> str:
+        paths = [str(_inside(ws, p.strip())) for p in images.split(",") if p.strip()]
+        return _vid.make_slideshow(paths, str(_inside(ws, out)))
+
+    def make_text_video(text: str, out: str = "text-video.mp4") -> str:
+        return _vid.make_text_video(text, str(_inside(ws, out)))
+
+    def make_poster(text: str, out: str = "poster.png") -> str:
+        return _img.make_poster(text, str(_inside(ws, out)))
+
+    def make_thumbnail(text: str, out: str = "thumbnail.png") -> str:
+        return _img.make_thumbnail(text, str(_inside(ws, out)))
+
+    def say(text: str) -> str:
+        return _voice.say(text)
+
+    reg.register("make_slideshow", "Make a vertical video from images (comma list)", make_slideshow, consequential=True)
+    reg.register("make_text_video", "Make a video with big text", make_text_video, consequential=True)
+    reg.register("make_poster", "Make a poster image with text", make_poster, consequential=True)
+    reg.register("make_thumbnail", "Make a YouTube thumbnail image", make_thumbnail, consequential=True)
+    reg.register("say", "Speak text aloud (local voice)", say)
+
+    # --- product: goals / ideas / feed / library / artifacts ---
+    if data_root is not None:
+        from packages.product import Feed as _Feed, Goals as _Goals, Ideas as _Ideas, artifacts as _art, library_list as _lib
+
+        _goals, _ideas, _feed = _Goals(data_root), _Ideas(data_root), _Feed(data_root)
+
+        reg.register("goal_add", "Add a goal", lambda title: _goals.add(title))
+        reg.register("goal_list", "List goals", lambda: _goals.list())
+        reg.register("goal_done", "Mark goal number done", lambda index: _goals.done(int(index)))
+        reg.register("idea_add", "Save an idea", lambda text: _ideas.add(text))
+        reg.register("idea_list", "List ideas", lambda: _ideas.list())
+        reg.register("feed_make", "Make today's feed posts", lambda: _feed.generate(_goals, memory.all_notes() if memory else ""))
+        reg.register("feed_list", "Show feed posts", lambda: _feed.list())
+        reg.register("library", "List library files", lambda: _lib(ws))
+        reg.register("make_doc", "Make an HTML document artifact", lambda title, body, out="doc.html": _art.make_doc(title, body, str(_inside(ws, out))), consequential=True)
+        reg.register("make_deck", "Make a slide deck artifact (slides split by |)", lambda title, slides, out="deck.html": _art.make_deck(title, slides.split("|"), str(_inside(ws, out))), consequential=True)
+        reg.register("make_sheet", "Make a CSV sheet artifact (rows split by ; cells by ,)", lambda rows, out="sheet.csv": _art.make_sheet([r.split(",") for r in rows.split(";")], str(_inside(ws, out))), consequential=True)
+
+    # --- connectors (browser profiles, no API keys; posting needs approval) ---
+    if data_root is not None:
+        from packages.browser import ProfileManager as _PM
+        from packages.connectors import all_connectors as _all_conn
+
+        _profiles = _PM(Path(data_root) / "profiles")
+        _conns = _all_conn(_profiles)
+
+        def connector_status(connector: str = "") -> str:
+            if connector in _conns:
+                return _conns[connector].status()
+            return "\n".join(f"{n}: profile {'exists' if (Path(data_root) / 'profiles' / n).exists() else 'not set up'}" for n in _conns)
+
+        def connector_signin(connector: str) -> str:
+            return _conns[connector].signin()
+
+        def gmail_search(query: str) -> str:
+            return _conns["gmail"].search(query)
+
+        def gmail_send(to: str, subject: str, body: str) -> str:
+            return _conns["gmail"].send(to, subject, body)
+
+        def facebook_post(text: str) -> str:
+            return _conns["facebook"].post_text(text)
+
+        def tiktok_upload(video: str, caption: str = "") -> str:
+            return _conns["tiktok"].upload_video(str(_inside(ws, video)), caption)
+
+        def youtube_upload(video: str, title: str, description: str = "") -> str:
+            return _conns["youtube"].upload_video(str(_inside(ws, video)), title, description)
+
+        def whatsapp_send(contact: str, text: str) -> str:
+            return _conns["whatsapp"].send_message(contact, text)
+
+        reg.register("connector_status", "Check connector sign-in status", connector_status)
+        reg.register("connector_signin", "Open browser for the user to sign in by hand", connector_signin, consequential=True)
+        reg.register("gmail_search", "Search Gmail (signed-in profile)", gmail_search)
+        reg.register("gmail_send", "Send an email via Gmail", gmail_send, consequential=True)
+        reg.register("facebook_post", "Post text to Facebook", facebook_post, consequential=True)
+        reg.register("tiktok_upload", "Upload a video to TikTok", tiktok_upload, consequential=True)
+        reg.register("youtube_upload", "Upload a video to YouTube", youtube_upload, consequential=True)
+        reg.register("whatsapp_send", "Send a WhatsApp message", whatsapp_send, consequential=True)
 
     reg.register("read_file", "Read a text file in the workspace", read_file)
     reg.register("write_file", "Write a text file in the workspace", write_file, consequential=True)

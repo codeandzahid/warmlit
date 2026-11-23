@@ -28,7 +28,7 @@ def main() -> int:
     agent = Agent(
         model=pick_model(),
         memory=_memory,
-        tools=default_tools(data / "workspace", memory=_memory),
+        tools=default_tools(data / "workspace", memory=_memory, data_root=data),
         approvals=ApprovalGate(approve=cli_approve),
         plan="paid",  # owner: everything unlocked, no daily limit
         usage=None,

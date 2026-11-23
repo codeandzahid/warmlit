@@ -67,14 +67,29 @@ taps for risky actions. See `docs/plans.md`.
 - Tools: read/write/list files, run shell (approval), fetch web
   pages, open pages in local Chrome, search skills
 - Scheduler: jobs that actually run (`every:60s`, `daily@09:15`)
-- Model providers: echo demo, OpenAI-compatible API, Ollama local
-- 8 tests, all passing
+- Model providers: built-in LocalBrain (no key), Ollama local
+  (no key), OpenAI-compatible API (optional key)
+- Goals, Feed, Ideas, Library panels + commands
+- Artifacts: HTML docs, slide decks, CSV sheets
+- Connectors (your own Chrome sign-in, no API keys): Gmail,
+  Facebook, TikTok, YouTube, WhatsApp — see `docs/connectors.md`
+- Voice in web UI: talk (mic), speak replies, voice notes
+- Video making (ffmpeg): slideshow, text video, trim, join, resize
+- Image making: posters, YouTube thumbnails
+- Secure vault: encrypted local storage for keys you choose to keep
+- Hooks (watch file/URL) and subagents (background tasks)
+- Mobile app: installable PWA — open http://localhost:8765 on your
+  phone (same Wi-Fi), then "Add to Home Screen"
+- 23 tests, all passing
 
-## Not connected yet (needs your accounts/keys)
+## Cannot be copied (Meta services)
 
-- Gmail, Calendar, Facebook, TikTok, YouTube connectors — docs in
-  `packages/connectors/`, code hooks ready, no login without you
-- Mobile app, voice, image/video generation — later phases
+- Muse's own model (Wonder) — use Ollama locally, or a Meta Model
+  API key in `.env` if you get one
+- Muse Mail (@muse.ai) — use your own Gmail connector instead
+- Real payments/wallet — Warmlit opens the shop site; you pay yourself
+- AI image/video generation — needs a big local model or a key;
+  Warmlit makes videos from images/text with ffmpeg instead
 - Browser note: on some cloud VMs headless Chrome cannot reach the
   internet (tunnel error). On a normal PC it works. `web_fetch`
   works everywhere.

@@ -93,6 +93,30 @@ class Agent:
                 if not self.scheduler:
                     return "No scheduler."
                 return "\n".join(f"{j.name} [{j.schedule}] {j.task}" for j in self.scheduler.list_jobs()) or "No jobs."
+            if cmd == "goal":
+                if arg == "add":
+                    return self.use_tool("goal_add", title=rest)
+                if arg == "done":
+                    return self.use_tool("goal_done", index=rest)
+                return self.use_tool("goal_list")
+            if cmd == "idea":
+                if arg == "add":
+                    return self.use_tool("idea_add", text=rest)
+                return self.use_tool("idea_list")
+            if cmd == "feed":
+                return self.use_tool("feed_make" if arg == "make" else "feed_list")
+            if cmd == "library":
+                return self.use_tool("library")
+            if cmd == "connectors":
+                return self.use_tool("connector_status", connector=arg)
+            if cmd == "signin":
+                return self.use_tool("connector_signin", connector=arg)
+            if cmd == "say":
+                return self.use_tool("say", text=text[len("/say "):])
+            if cmd == "call":
+                import json as _json
+                call = _json.loads(rest or "{}")
+                return str(self.use_tool(arg, **call))
             if cmd == "plan":
                 used = self.usage.count_today() if self.usage else 0
                 limit = self.usage.limit if self.usage else "-"
