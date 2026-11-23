@@ -35,7 +35,7 @@ def _inside(ws: Path, path: str) -> Path:
     return p
 
 
-def default_tools(workspace: str | Path, skills_root: str | Path | None = None) -> ToolRegistry:
+def default_tools(workspace: str | Path, skills_root: str | Path | None = None, memory=None) -> ToolRegistry:
     ws = Path(workspace)
     ws.mkdir(parents=True, exist_ok=True)
     reg = ToolRegistry()
@@ -93,6 +93,18 @@ def default_tools(workspace: str | Path, skills_root: str | Path | None = None) 
             if query.lower() in txt.lower() or query.lower() in str(f).lower():
                 hits.append(f"{f.parent.name}: {txt.splitlines()[0] if txt else ''}")
         return "\n".join(hits) or "no skill matched"
+
+    if memory is not None:
+        def memory_remember(note: str) -> str:
+            memory.remember(note)
+            return "Saved."
+
+        def memory_search(query: str) -> str:
+            hits = memory.search(query)
+            return "\n".join(hits) or "No match."
+
+        reg.register("memory_remember", "Save a note to long-term memory", memory_remember)
+        reg.register("memory_search", "Search long-term memory notes", memory_search)
 
     reg.register("read_file", "Read a text file in the workspace", read_file)
     reg.register("write_file", "Write a text file in the workspace", write_file, consequential=True)

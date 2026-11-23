@@ -40,17 +40,18 @@ commands work right away in the chat box:
 CLI version: `python3 apps/cli/main.py`
 Tests: `python3 -m unittest discover tests`
 
-## Use a real AI brain
+## No keys needed — entire system works without keys
 
-Copy `.env.example` to `.env`, then pick one:
+Default brain = built-in LocalBrain: tasks, memory, math, time,
+files, shell, web — zero keys, zero installs, works offline.
 
-- **API key** (OpenAI, OpenRouter, Meta Model API, any
-  OpenAI-compatible endpoint): set `MODEL_PROVIDER=openai`,
-  `MODEL_API_KEY=...`, `MODEL_NAME=...`
-- **Free local model** (your own PC): install Ollama from
-  ollama.com, run `ollama pull llama3.2`, set `MODEL_PROVIDER=ollama`
+For full free-form AI chat, still NO key: run `install-ollama.sh`
+(or `install-ollama.bat` on Windows). It installs Ollama + a small
+free model (~1 GB). Warmlit finds it alone and uses it.
 
-Never put keys in chat. `.env` is gitignored.
+An API key is optional only (OpenAI / Meta Model API / etc.):
+copy `.env.example` to `.env` and set it there. Never put keys in
+chat. `.env` is gitignored.
 
 ## Owner only — everything unlocked
 

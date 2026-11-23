@@ -24,10 +24,11 @@ def main() -> int:
     data = Path(args.data)
     lic = {"plan": "paid"}  # owner-only: everything unlocked
     scheduler = Scheduler(store=data / "jobs.json")
+    _memory = MemoryStore(data / "memory")
     agent = Agent(
         model=pick_model(),
-        memory=MemoryStore(data / "memory"),
-        tools=default_tools(data / "workspace"),
+        memory=_memory,
+        tools=default_tools(data / "workspace", memory=_memory),
         approvals=ApprovalGate(approve=cli_approve),
         plan="paid",  # owner: everything unlocked, no daily limit
         usage=None,

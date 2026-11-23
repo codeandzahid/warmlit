@@ -34,10 +34,11 @@ def ask_approval(action: str) -> bool:
 # Owner-only: Warmlit is personal, everything unlocked for the owner.
 license_info = {"plan": "paid", "expires": None, "days_left": 0}
 scheduler = Scheduler(store=DATA / "jobs.json")
+_memory = MemoryStore(DATA / "memory")
 agent = Agent(
     model=pick_model(),
-    memory=MemoryStore(DATA / "memory"),
-    tools=default_tools(DATA / "workspace"),
+    memory=_memory,
+    tools=default_tools(DATA / "workspace", memory=_memory),
     approvals=ApprovalGate(approve=ask_approval),
     scheduler=scheduler,
     plan="paid",  # owner: everything unlocked, no daily limit

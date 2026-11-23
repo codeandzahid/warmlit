@@ -81,18 +81,30 @@ def load_dotenv(path: str = ".env") -> None:
         pass
 
 
+def _ollama_alive(host: str) -> bool:
+    try:
+        with urllib.request.urlopen(f"{host}/api/tags", timeout=1) as r:
+            return r.status == 200
+    except Exception:
+        return False
+
+
 def pick_model():
+    """Default is NO KEY: auto = Ollama if running locally, else LocalBrain.
+    An API key is used only if the owner explicitly sets MODEL_PROVIDER=openai."""
+    from .local_brain import LocalBrain
+
     load_dotenv()
-    provider = os.environ.get("MODEL_PROVIDER", "echo").lower()
+    provider = os.environ.get("MODEL_PROVIDER", "auto").lower()
     if provider == "openai" and os.environ.get("MODEL_API_KEY"):
         return OpenAICompatibleModel(
             api_key=os.environ["MODEL_API_KEY"],
             base_url=os.environ.get("MODEL_BASE_URL", "https://api.openai.com/v1"),
             model=os.environ.get("MODEL_NAME", "gpt-4o-mini"),
         )
-    if provider == "ollama":
-        return OllamaModel(
-            host=os.environ.get("OLLAMA_HOST", "http://localhost:11434"),
-            model=os.environ.get("OLLAMA_MODEL", "llama3.2"),
-        )
-    return EchoModel()
+    if provider == "echo":
+        return EchoModel()
+    host = os.environ.get("OLLAMA_HOST", "http://localhost:11434")
+    if provider == "ollama" or _ollama_alive(host):
+        return OllamaModel(host=host, model=os.environ.get("OLLAMA_MODEL", "qwen2.5:1.5b"))
+    return LocalBrain()
