@@ -5,53 +5,86 @@ One user, one agent, one computer that stays with the user.
 
 **Important:** This is NOT Meta's Muse code and NOT the Muse model.
 No Meta private code is copied here. This repo builds the same *idea*
-with our own code: chat, memory, tools, browser, skills, connectors,
-scheduled work, goals, feed, artifacts, approvals, and a secure vault
-for logins. The brain (the AI model) is pluggable — bring your own
-model API key.
+with our own code. The brain (the AI model) is pluggable — bring your
+own model API key, or run a free local model with Ollama.
 
-## What Muse does (the target)
+## Run it locally (works now)
 
-- Chat with your own agent, in app / web / WhatsApp
-- The agent has its own computer: files, terminal, browser
-- Long-term memory about the user, people, and goals
-- Tools: read/write files, run code, search the web, use a browser
-- Skills: reusable playbooks for tasks (booking, shopping, email…)
-- Connectors: Gmail, Calendar, Facebook, TikTok, YouTube, etc.
-- Scheduled jobs and background work while the user is away
-- Goals tab, Feed tab, Ideas tab, Library, artifacts (docs/apps)
-- Voice, media generation (image / video / audio)
-- Approvals: the user taps approve before sends, posts, purchases
-- Secure Vault: passwords never in chat, never in memory files
-
-See `BLUEPRINT.md` for the full feature map and `PLAN.md` for build order.
-
-## Run the skeleton (no keys needed)
-
+Linux / macOS:
 ```bash
 cd warmlit
-python3 apps/cli/main.py --demo
-python3 -m pytest tests/ -q   # or: python3 -m unittest discover tests
+./run.sh
+```
+Windows: double-click `run.bat`
+
+Then open http://localhost:8765
+
+No keys needed to start: the demo echo model runs, and these
+commands work right away in the chat box:
+
+```
+/remember I like tea
+/search tea
+/tools
+/files
+/read note.txt
+/write note.txt hello      (approval card appears)
+/run echo hi               (approval card appears)
+/web https://example.com
+/browser https://example.com
+/skills example
+/job every:60s /remember tick
+/jobs
 ```
 
-The demo uses a built-in echo model, so it runs with zero setup.
-To use a real model, copy `.env.example` to `.env` and add your key.
+CLI version: `python3 apps/cli/main.py`
+Tests: `python3 -m unittest discover tests`
+
+## Use a real AI brain
+
+Copy `.env.example` to `.env`, then pick one:
+
+- **API key** (OpenAI, OpenRouter, Meta Model API, any
+  OpenAI-compatible endpoint): set `MODEL_PROVIDER=openai`,
+  `MODEL_API_KEY=...`, `MODEL_NAME=...`
+- **Free local model** (your own PC): install Ollama from
+  ollama.com, run `ollama pull llama3.2`, set `MODEL_PROVIDER=ollama`
+
+Never put keys in chat. `.env` is gitignored.
+
+## What works today
+
+- Web chat UI + CLI chat, with approval cards (Approve / Deny)
+- Memory: save + search notes (markdown files)
+- Tools: read/write/list files, run shell (approval), fetch web
+  pages, open pages in local Chrome, search skills
+- Scheduler: jobs that actually run (`every:60s`, `daily@09:15`)
+- Model providers: echo demo, OpenAI-compatible API, Ollama local
+- 8 tests, all passing
+
+## Not connected yet (needs your accounts/keys)
+
+- Gmail, Calendar, Facebook, TikTok, YouTube connectors — docs in
+  `packages/connectors/`, code hooks ready, no login without you
+- Mobile app, voice, image/video generation — later phases
+- Browser note: on some cloud VMs headless Chrome cannot reach the
+  internet (tunnel error). On a normal PC it works. `web_fetch`
+  works everywhere.
+
+See `BLUEPRINT.md` for the full Muse feature map and `PLAN.md`.
 
 ## Layout
 
 ```
+apps/web/            local web UI (http://localhost:8765)
 apps/cli/            chat command-line app
-packages/agent_core/ agent loop, tools, memory, approvals, scheduler
+packages/agent_core/ agent loop, models, tools, memory, approvals, scheduler
 packages/skills/     task playbooks (SKILL.md files)
 packages/connectors/ service connectors (Gmail, Calendar, …)
-packages/browser/    browser automation notes + interface
+packages/browser/    browser automation notes
 docs/                architecture and feature checklist
-data/                user data at runtime (memory, workspace) — gitignored
-tests/               tests for the core
+data/                user data at runtime — gitignored
+tests/               tests (8, all passing)
 ```
 
-## Status
-
-Phase 0 skeleton: agent loop + memory + tools + approvals + tests.
-Everything else is mapped in `BLUEPRINT.md` and built phase by phase.
 Nothing here posts, sends, or buys without an approval step.
