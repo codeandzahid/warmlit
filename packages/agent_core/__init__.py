@@ -5,8 +5,10 @@ from .memory import MemoryStore
 from .tools import ToolRegistry, default_tools
 from .approvals import ApprovalGate
 from .scheduler import Job, Scheduler
+from .plans import UsageCounter, check_license, make_license
 
 __all__ = [
     "Agent", "EchoModel", "OllamaModel", "OpenAICompatibleModel", "pick_model",
     "MemoryStore", "ToolRegistry", "default_tools", "ApprovalGate", "Job", "Scheduler",
+    "UsageCounter", "check_license", "make_license",
 ]

@@ -52,6 +52,17 @@ Copy `.env.example` to `.env`, then pick one:
 
 Never put keys in chat. `.env` is gitignored.
 
+## Free vs Paid
+
+- **Free:** chat with daily limit, memory, read files, web fetch.
+- **Paid:** unlimited + local system tasks — write files, run shell,
+  open Chrome, scheduled jobs. All still need approval taps.
+
+Owner makes a Paid key with `python3 tools/make_key.py --days 30`
+(after the buyer pays outside Warmlit — no card data in this code).
+Buyer puts `license.json` in `data/`. Price is NOT set yet — see
+`docs/plans.md`. Check your plan in chat with `/plan`.
+
 ## What works today
 
 - Web chat UI + CLI chat, with approval cards (Approve / Deny)

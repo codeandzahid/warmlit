@@ -11,7 +11,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, default_tools, pick_model  # noqa: E402
+from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, UsageCounter, check_license, default_tools, pick_model  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[2]
 DATA = ROOT / "data"
@@ -31,6 +31,7 @@ def ask_approval(action: str) -> bool:
     return approval_results.pop(aid, False)
 
 
+license_info = check_license(DATA / "license.json")
 scheduler = Scheduler(store=DATA / "jobs.json")
 agent = Agent(
     model=pick_model(),
@@ -38,6 +39,8 @@ agent = Agent(
     tools=default_tools(DATA / "workspace"),
     approvals=ApprovalGate(approve=ask_approval),
     scheduler=scheduler,
+    plan=license_info["plan"],
+    usage=UsageCounter(DATA / "usage.json"),
 )
 
 PAGE = """<!doctype html><html><head><meta charset=utf-8><title>Warmlit</title>
@@ -46,6 +49,8 @@ PAGE = """<!doctype html><html><head><meta charset=utf-8><title>Warmlit</title>
 .u{background:#dbeafe}.a{background:#f3f4f6}.m{border-radius:10px;padding:8px;margin:6px 0;white-space:pre-wrap}
 input{width:78%;padding:10px}button{padding:10px 14px}.card{border:2px solid orange;padding:10px;margin:8px 0;border-radius:8px}</style></head>
 <body><h2>Warmlit — your local agent</h2>
+<p id=plan>Plan: loading…</p>
+<script>fetch('/health').then(r=>r.json()).then(j=>{document.getElementById('plan').textContent='Plan: '+j.plan+(j.plan==='paid'?' ('+j.days_left+' days left)':' — local system tasks need Paid')+' · Model: '+j.model;});</script>
 <p>Try: <code>/remember I like tea</code> · <code>/search tea</code> · <code>/tools</code> · <code>/web https://example.com</code> · <code>/write note.txt hello</code> · <code>/job every:60s /remember tick</code></p>
 <div id=approvals></div><div id=chat></div>
 <p><input id=msg placeholder="Message Warmlit…"><button onclick=send()>Send</button></p>
@@ -82,7 +87,7 @@ class Handler(BaseHTTPRequestHandler):
         elif self.path == "/approvals":
             self._send(json.dumps({"pending": list(pending_approvals)}).encode())
         elif self.path == "/health":
-            self._send(json.dumps({"ok": True, "model": agent.model.name, "jobs": len(scheduler.jobs)}).encode())
+            self._send(json.dumps({"ok": True, "model": agent.model.name, "jobs": len(scheduler.jobs), "plan": agent.plan, "days_left": license_info["days_left"]}).encode())
         else:
             self.send_response(404); self.end_headers()
 
@@ -105,5 +110,5 @@ class Handler(BaseHTTPRequestHandler):
 if __name__ == "__main__":
     DATA.mkdir(parents=True, exist_ok=True)
     scheduler.start(agent, DATA / "jobs.log")
-    print(f"Warmlit running: http://localhost:8765  (model: {agent.model.name})", flush=True)
+    print(f"Warmlit running: http://localhost:8765  (model: {agent.model.name}, plan: {agent.plan})", flush=True)
     ThreadingHTTPServer(("127.0.0.1", 8765), Handler).serve_forever()

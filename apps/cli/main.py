@@ -5,7 +5,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
 
-from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, default_tools, pick_model  # noqa: E402
+from packages.agent_core import Agent, ApprovalGate, MemoryStore, Scheduler, UsageCounter, check_license, default_tools, pick_model  # noqa: E402
 
 
 def cli_approve(action: str) -> bool:
@@ -22,12 +22,15 @@ def main() -> int:
     args = ap.parse_args()
 
     data = Path(args.data)
+    lic = check_license(data / "license.json")
     scheduler = Scheduler(store=data / "jobs.json")
     agent = Agent(
         model=pick_model(),
         memory=MemoryStore(data / "memory"),
         tools=default_tools(data / "workspace"),
         approvals=ApprovalGate(approve=cli_approve),
+        plan=lic["plan"],
+        usage=UsageCounter(data / "usage.json"),
         scheduler=scheduler,
     )
     if args.demo:

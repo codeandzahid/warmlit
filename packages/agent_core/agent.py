@@ -21,6 +21,7 @@ import re
 from .approvals import ApprovalGate
 from .memory import MemoryStore
 from .models import EchoModel
+from .plans import PAID_ONLY_TOOLS, UsageCounter
 from .tools import ToolRegistry
 
 TOOL_BLOCK = re.compile(r"```tool\s*(\{.*?\})\s*```", re.S)
@@ -28,12 +29,15 @@ TOOL_BLOCK = re.compile(r"```tool\s*(\{.*?\})\s*```", re.S)
 
 class Agent:
     def __init__(self, model, memory: MemoryStore, tools: ToolRegistry,
-                 approvals: ApprovalGate | None = None, scheduler=None):
+                 approvals: ApprovalGate | None = None, scheduler=None,
+                 plan: str = "free", usage: UsageCounter | None = None):
         self.model = model
         self.memory = memory
         self.tools = tools
         self.approvals = approvals or ApprovalGate()
         self.scheduler = scheduler
+        self.plan = plan  # "free" | "paid"
+        self.usage = usage
         self.history: list[dict] = []
 
     def system_prompt(self) -> str:
@@ -48,6 +52,8 @@ class Agent:
         )
 
     def use_tool(self, name: str, **kwargs):
+        if self.plan != "paid" and name in PAID_ONLY_TOOLS:
+            raise PermissionError(f"{name} is a Paid feature (local system tasks). Upgrade to Paid.")
         if self.tools.is_consequential(name) and not self.approvals.check(name, consequential=True):
             raise PermissionError(f"approval needed for {name}")
         return self.tools.call(name, **kwargs)
@@ -87,7 +93,13 @@ class Agent:
                 if not self.scheduler:
                     return "No scheduler."
                 return "\n".join(f"{j.name} [{j.schedule}] {j.task}" for j in self.scheduler.list_jobs()) or "No jobs."
+            if cmd == "plan":
+                used = self.usage.count_today() if self.usage else 0
+                limit = self.usage.limit if self.usage else "-"
+                return f"Plan: {self.plan}. Used today: {used}/{limit if self.plan == 'free' else 'unlimited'}."
             if cmd == "job" and self.scheduler:
+                if self.plan != "paid":
+                    return "[Paid feature: scheduled jobs run local system tasks. Upgrade to Paid.]"
                 from .scheduler import Job
                 job = self.scheduler.add(Job(name=f"job-{len(self.scheduler.jobs)+1}", schedule=arg, task=rest))
                 return f"Job added: {job.schedule} — {job.task}"
@@ -98,6 +110,10 @@ class Agent:
         return "Unknown command. Try /tools"
 
     def chat(self, user_text: str) -> str:
+        if self.plan != "paid" and self.usage and not user_text.strip().startswith("/plan"):
+            if self.usage.over_limit():
+                return f"[Free daily limit reached ({self.usage.limit}/day). Upgrade to Paid for unlimited use.]"
+            self.usage.add()
         self.history.append({"role": "user", "content": user_text})
         cmd_out = self._command(user_text.strip())
         if cmd_out is not None:

@@ -17,6 +17,7 @@ class TestAgent(unittest.TestCase):
             memory=MemoryStore(root / "memory"),
             tools=default_tools(root / "workspace"),
             approvals=ApprovalGate(approve=lambda action: True),
+            plan="paid",
         )
 
     def tearDown(self):
@@ -35,6 +36,7 @@ class TestAgent(unittest.TestCase):
             memory=self.agent.memory,
             tools=self.agent.tools,
             approvals=ApprovalGate(),  # default deny
+            plan="paid",
         )
         with self.assertRaises(PermissionError):
             deny.use_tool("write_file", path="a.txt", content="x")

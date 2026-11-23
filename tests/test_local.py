@@ -20,6 +20,7 @@ class TestLocal(unittest.TestCase):
             tools=default_tools(root / "workspace"),
             approvals=ApprovalGate(approve=lambda a: True),
             scheduler=self.scheduler,
+            plan="paid",
         )
 
     def tearDown(self):
