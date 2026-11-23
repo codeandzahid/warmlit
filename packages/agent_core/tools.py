@@ -107,7 +107,7 @@ def default_tools(workspace: str | Path, skills_root: str | Path | None = None, 
         reg.register("memory_search", "Search long-term memory notes", memory_search)
 
     # --- media (local, no keys) ---
-    from packages.media import image as _img, video as _vid, voice as _voice
+    from packages.media import image as _img, video as _vid, videogen as _gen, voice as _voice
 
     def make_slideshow(images: str, out: str = "video.mp4") -> str:
         paths = [str(_inside(ws, p.strip())) for p in images.split(",") if p.strip()]
@@ -129,6 +129,10 @@ def default_tools(workspace: str | Path, skills_root: str | Path | None = None, 
     reg.register("make_text_video", "Make a video with big text", make_text_video, consequential=True)
     reg.register("make_poster", "Make a poster image with text", make_poster, consequential=True)
     reg.register("make_thumbnail", "Make a YouTube thumbnail image", make_thumbnail, consequential=True)
+    def generate_video(prompt: str, out: str = "generated.mp4") -> str:
+        return _gen.generate_video(prompt, str(_inside(ws, out)))
+
+    reg.register("generate_video", "Generate a video from a text prompt (Warmlit own engine, no Meta)", generate_video, consequential=True)
     reg.register("say", "Speak text aloud (local voice)", say)
 
     # --- product: goals / ideas / feed / library / artifacts ---

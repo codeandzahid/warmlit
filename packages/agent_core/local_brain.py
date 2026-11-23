@@ -115,6 +115,9 @@ class LocalBrain:
         m = re.match(r"make (?:a )?text video (?:that says|with text)\s+(.+)", text, re.I)
         if m:
             return _tool("make_text_video", text=m.group(1))
+        m = re.match(r"(?:generate|make|create) (?:a )?video (?:about|of|showing)\s+(.+)", text, re.I | re.S)
+        if m:
+            return _tool("generate_video", prompt=m.group(1))
         m = re.match(r"say\s+(.+)", text, re.I)
         if m:
             return _tool("say", text=m.group(1))

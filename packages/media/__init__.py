@@ -1,3 +1,3 @@
-from . import image, video, voice
+from . import image, video, videogen, voice
 
-__all__ = ["image", "video", "voice"]
+__all__ = ["image", "video", "videogen", "voice"]
