@@ -1,4 +1,4 @@
-# Muse Clone — Personal AI Agent
+# Warmlit — Personal AI Agent
 
 A Muse-like personal AI agent, built from scratch in this repo.
 One user, one agent, one computer that stays with the user.
@@ -29,7 +29,7 @@ See `BLUEPRINT.md` for the full feature map and `PLAN.md` for build order.
 ## Run the skeleton (no keys needed)
 
 ```bash
-cd muse-clone
+cd warmlit
 python3 apps/cli/main.py --demo
 python3 -m pytest tests/ -q   # or: python3 -m unittest discover tests
 ```

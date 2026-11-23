@@ -26,7 +26,7 @@ def main() -> int:
         print("memory search:", agent.memory.search("demo"))
         return 0
 
-    print("Muse Clone CLI (demo model). Type 'quit' to exit.")
+    print("Warmlit CLI (demo model). Type 'quit' to exit.")
     while True:
         try:
             line = input("you> ").strip()
