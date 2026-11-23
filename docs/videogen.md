@@ -17,8 +17,17 @@ Prompt rules:
 The built-in engine draws animated 2D scenes locally (no GPU, no
 key). It is NOT photoreal AI diffusion like Meta's generator.
 
-For real diffusion quality on YOUR PC: install a local open video
-model yourself, then set in `.env`:
-`VIDEO_MODEL_CMD=your-command --prompt "{prompt}" --out "{out}"`
-Warmlit will call it instead. (Note: heavy models need a strong GPU;
-this code does not download any model by itself.)
+## Real-photo AI (added Nov 23 on owner order)
+Backend: `packages/media/realphoto.py` — open pretrained
+text-to-video model (LTX-Video by default) via diffusers, on your
+PC, no Meta, no API key. Install: `install-realphoto.bat` /
+`./install-realphoto.sh`, then set `VIDEO_BACKEND=realphoto`.
+First run downloads weights (several GB).
+
+Hardware truth: no open real-photo model fits 4GB VRAM natively
+(floors ~6-16GB depending on model). CPU offload works but a 5s
+clip can take hours. AMD on Windows runs on CPU. NVIDIA 8GB+ is
+the practical minimum for Red-Wing-style real-photo clips.
+
+Also supported: `VIDEO_MODEL_CMD=your-command --prompt "{prompt}"
+--out "{out}"` in `.env` for any other local model command.

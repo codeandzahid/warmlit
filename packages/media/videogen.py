@@ -213,6 +213,11 @@ def render_frame(scene: str, t: float, W: int, H: int) -> Image.Image:
 def generate_video(prompt: str, out: str, seconds_per_scene: float = 4.0,
                    fps: int = 12, size: tuple = (720, 1280)) -> str:
     """Generate a video from a text prompt. Fully local, no Meta."""
+    # Real-photo AI backend (open pretrained model on your PC, no Meta, no key):
+    if os.environ.get("VIDEO_BACKEND") == "realphoto":
+        from . import realphoto
+        return realphoto.generate(prompt, out)
+
     # Warmlit Video Model (our own diffusion model, packages/videomodel):
     ckpt = os.environ.get("WARMLIT_VIDEO_CKPT")
     if ckpt and Path(ckpt).exists():
